@@ -11,7 +11,11 @@ pub async fn verify_account_credentials(
         public_key
     )
     .fetch_optional(pool)
-    .await?;
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to verify account credentials: {:?}", e);
+        e
+    })?;
 
     Ok(result.map(|record| record.token_amount))
 }
@@ -25,7 +29,11 @@ pub async fn add_account(public_key: &str, pool: &PgPool) -> Result<i32, sqlx::E
         initial_token_amount
     )
     .execute(pool)
-    .await?;
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to add account: {:?}", e);
+        e
+    })?;
 
     Ok(initial_token_amount)
 }
