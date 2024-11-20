@@ -7,7 +7,7 @@ use tracing::error;
 use tracing::instrument;
 
 // Import the functions from the user_verification module
-use crate::verification::{add_user, verify_user_credentials};
+use crate::verification::{add_account, verify_account_credentials};
 
 #[derive(Debug, Deserialize)]
 pub struct GenerationParams {
@@ -48,7 +48,7 @@ pub async fn generate(form: web::Json<GenerateRequest>, pool: web::Data<PgPool>)
 
     let public_key = form.public_key.as_ref().unwrap();
 
-    match verify_user_credentials(public_key, pool.get_ref()).await {
+    match verify_account_credentials(public_key, pool.get_ref()).await {
         Ok(Some(token_amount)) => {
             // User exists, proceed with image generation
             // let image_path = generate_image(form.gen_params);
@@ -77,7 +77,7 @@ pub async fn generate(form: web::Json<GenerateRequest>, pool: web::Data<PgPool>)
         }
         Ok(None) => {
             // User does not exist, attempt to add them
-            match add_user(public_key, pool.get_ref()).await {
+            match add_account(public_key, pool.get_ref()).await {
                 Ok(token_amount) => HttpResponse::Created().json(GenerateResponse {
                     success: true,
                     message: "You currently have no generation tokens. Add tokens to your balance to generate".into(),
