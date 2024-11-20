@@ -25,5 +25,6 @@ RUN apt-get update -y \
 # Copy the compile binary from the builder env to our runtime env
 COPY --from=builder /app/target/release/backend backend
 COPY configuration configuration
+COPY static static
 ENV APP_ENVIRONMENT production
 ENTRYPOINT ["./backend"]
