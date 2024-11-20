@@ -10,7 +10,12 @@ pub async fn verify_user_credentials(
         "SELECT token_amount FROM accounts WHERE public_key = $1",
         public_key
     )
-    .fetch_optional(pool)
+    .fetch_optional(pool)   sqlx migrate run
+
+
+---------------------------User---------------------------
+
+
     .await?;
 
     Ok(result.map(|record| record.token_amount))
