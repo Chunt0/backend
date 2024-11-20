@@ -13,7 +13,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
             .wrap(TracingLogger::default())
             .wrap(
                 Cors::default()
-                    .allowed_origin("http://localhost:5173")
+                    .allow_any_origin()
                     .allowed_methods(vec!["GET", "POST", "OPTIONS"])
                     .allowed_headers(vec![
                         header::AUTHORIZATION,
