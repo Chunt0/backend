@@ -92,9 +92,9 @@ pub async fn generate(form: web::Json<GenerateRequest>, pool: web::Data<PgPool>)
                 }),
             }
         }
-        Err(_) => HttpResponse::InternalServerError().json(GenerateResponse {
+        Err(e) => HttpResponse::InternalServerError().json(GenerateResponse {
             success: false,
-            message: "Failed to verify user credentials".into(),
+            message: format!("Failed to verify user credentials: {e}"),
             image: None,
             token_amount: None,
         }),
