@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE accounts SET token_amount = $1 where public_key = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "00e8f853f09aab6310bdb2199ef6ba2480dd4b2dfdbe4eb41c3f1bba7e969156"
+}

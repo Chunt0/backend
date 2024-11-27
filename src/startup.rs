@@ -1,4 +1,4 @@
-use crate::routes::{generate, health_check};
+use crate::routes::{add_tokens, generate, health_check};
 use actix_cors::Cors;
 use actix_web::http::header;
 use actix_web::{dev::Server, web, App, HttpServer};
@@ -22,6 +22,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
                     ])
                     .max_age(3600),
             )
+            .service(add_tokens)
             .service(generate)
             .service(health_check)
             .app_data(db_pool.clone())
