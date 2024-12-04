@@ -31,6 +31,7 @@ actix-files = "0.6.6"
 base64 = "0.22.1"
 serde-aux = "4.5.0"
 actix-cors = "0.7.0"
+tempfile = "3.14.0"
 
 [dependencies.sqlx]
 version = "0.7"

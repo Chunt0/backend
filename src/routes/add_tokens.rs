@@ -17,6 +17,24 @@ pub struct AddTokensResponse {
     token_amount: Option<i32>,
 }
 
+impl AddTokensResponse {
+    fn error(message: String) -> Self {
+        Self {
+            success: false,
+            message,
+            token_amount: None,
+        }
+    }
+
+    fn success(token_amount: i32) -> Self {
+        Self {
+            success: true,
+            message: format!("You now have {:#?}", token_amount),
+            token_amount: Some(token_amount),
+        }
+    }
+}
+
 async fn update_token_amount(
     public_key: &str,
     token_addition: i32,
@@ -73,28 +91,24 @@ pub async fn add_tokens(
     pool: web::Data<PgPool>,
 ) -> impl Responder {
     if !form.is_connected || form.public_key.is_none() || form.token_addition.is_none() {
-        return HttpResponse::BadRequest().json(AddTokensResponse {
-            success: false,
-            message: "User is not connected or public key is missing".into(),
-            token_amount: None,
-        });
+        return HttpResponse::BadRequest().json(AddTokensResponse::error(
+            "User is not connect or public key is missing".into(),
+        ));
     }
 
     let public_key = form.public_key.as_ref().unwrap();
     let token_addition = form.token_addition.unwrap();
+
     match update_token_amount(public_key, token_addition, &pool).await {
-        Ok(token_amount) => HttpResponse::Ok().json(AddTokensResponse {
-            success: true,
-            message: format!("You now have {:#?}", token_amount),
-            token_amount,
-        }),
+        Ok(Some(token_amount)) => HttpResponse::Ok().json(AddTokensResponse::success(token_amount)),
+        Ok(None) => {
+            HttpResponse::NotFound().json(AddTokensResponse::error("Account not found".into()))
+        }
         Err(e) => {
-            tracing::error!("Failed to update token amount: {:?}", e);
-            HttpResponse::InternalServerError().json(AddTokensResponse {
-                success: false,
-                message: "Failed to update token amount".into(),
-                token_amount: None,
-            })
+            tracing::error!("Token addition failed: {:?}", e);
+            HttpResponse::InternalServerError().json(AddTokensResponse::error(
+                "An error occurred during the token addition process".into(),
+            ))
         }
     }
 }
