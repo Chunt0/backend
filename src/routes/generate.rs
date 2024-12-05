@@ -127,7 +127,7 @@ fn generate_image(gen_params: &GenerationParams) -> Result<String, Box<dyn std::
     }
     // Read the generated image
 
-    let image_data = std::fs::read("./static/test.png")?;
+    let image_data = std::fs::read("./scripts/python/output/temp.png")?;
 
     // Encode the image data to base64
     Ok(general_purpose::STANDARD.encode(image_data))
