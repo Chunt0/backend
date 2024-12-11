@@ -11,31 +11,31 @@ def load_sdxl():
         def apply_watermark(self, img):
             return img 
             
-    model_checkpoint = "stabilityai/stable-diffusion-xl-base-1.0"
-    #lora_checkpoint = lora_model_dict[lora_model_type]
+    model_checkpoint = "RunDiffusion/Juggernaut-X-v10"
+    lora_checkpoint_1 = "/home/chunt/Pictures/dataset/mifella/lora/model/m~f-collage-v2.safetensors"
+    lora_checkpoint_2 = "/home/chunt/Pictures/dataset/alvin-baltrop/lora/alvin_baltrop_v2/model/b9av-photograph-v2.safetensors"
     
-    # Get VAE for SDXL this is hardcoded
-    vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
     # Load Tuned Base model and refiner
     pipe = DiffusionPipeline.from_pretrained(
         model_checkpoint, 
         torch_dtype=torch.float16,
-        vae=vae,
         )
-    #if lora_model_type != "None":
-    #    pipe.load_lora_weights(lora_checkpoint)
-    #    pipe.fuse_lora()
+    #pipe.load_lora_weights(lora_checkpoint_1, weight_name="m~f-collage-v2.safetensors", adapter_name="mifella")
+    #pipe.load_lora_weights(lora_checkpoint_2, weight_name="b9av-photograph-v2.safetensors", adapter_name="baltrop")
+    #pipe.set_adapters(["mifella", "baltrop"], adapter_weights=[.75,1])
     pipe.watermark = NoWatermark()
     pipe.safety_checker = lambda images, **kwargs: (images, [False] * len(images))
     pipe.to("cuda")
 
     return pipe
     
-def generate_sdxl(model, pos_prompt, neg_prompt, guidance, num_steps = 20, num_images = 1, seed = -1):
+def generate_sdxl(model, pos_prompt, neg_prompt, guidance, height, width, num_steps = 20, num_images = 1, seed = -1):
     generator = None if seed == -1 else torch.Generator("cuda").manual_seed(seed)
     images = model(
         prompt=pos_prompt,
         negative_prompt=neg_prompt,
+        height=height,
+        width=width,
         num_inference_steps=num_steps,
         num_images_per_prompt=num_images,
         guidance_scale=guidance,
@@ -52,10 +52,11 @@ def generate_sdxl(model, pos_prompt, neg_prompt, guidance, num_steps = 20, num_i
 def run_txt2img(pos_prompt, 
                 neg_prompt, 
                 guidance, 
+                height, width,
                 ):
     #num_images = num_images if num_images <= 10 else 10
     model = load_sdxl()
-    return generate_sdxl(model, pos_prompt, neg_prompt, guidance)
+    return generate_sdxl(model, pos_prompt, neg_prompt, guidance, height, width)
 
 
 def main():
@@ -64,7 +65,8 @@ def main():
     parser.add_argument('--neg_prompt', type=str, help='Negative prompt')
     parser.add_argument('--prompt_strength', type=float, help='Prompt strength')
     parser.add_argument('--batch_size', type=int, help='Batch size')
-    parser.add_argument('--size', type=str, help='Size in WxH format')
+    parser.add_argument('--height', type=int, help='Height of image in pixels')
+    parser.add_argument('--width', type=int, help='Width of image in pixels')
     parser.add_argument('--loras', type=str, help='Comma-separated list of loras')
     parser.add_argument('--output', type=str, help='Output file path')
 
@@ -73,7 +75,10 @@ def main():
     pos_prompt = args.pos_prompt
     neg_prompt = args.neg_prompt
     guidance = 7.5 * args.prompt_strength
-    run_txt2img(pos_prompt, neg_prompt, guidance)
+    height = args.height
+    width = args.width
+
+    run_txt2img(pos_prompt, neg_prompt, guidance, height, width)
     
 if __name__ == "__main__":
     main()
